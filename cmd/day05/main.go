@@ -6,14 +6,9 @@ import (
 	"strings"
 )
 
-var mappingNames []string = []string{
-	"seed-to-soil",
-	"soil-to-fertilizer",
-	"fertilizer-to-water",
-	"water-to-light",
-	"light-to-temperature",
-	"temperature-to-humidity",
-	"humidity-to-location",
+type Range struct {
+	start int
+	end   int
 }
 
 func parseSeeds(line string) []int {
@@ -25,6 +20,33 @@ func parseSeeds(line string) []int {
 		if seed != "" {
 			num, _ := strconv.Atoi(seed)
 			res = append(res, num)
+		}
+	}
+
+	return res
+}
+
+func parseSeedsRange(line string) []Range {
+	res := []Range{}
+
+	seeds := strings.Split(line, " ")
+	current := -1
+
+	for _, seed := range seeds {
+		seed = strings.TrimSpace(seed)
+		if seed == "" {
+			continue
+		}
+
+		num, _ := strconv.Atoi(seed)
+		if current < 0 {
+			current = num
+		} else {
+			res = append(res, Range{
+				start: current,
+				end:   current + num,
+			})
+			current = -1
 		}
 	}
 
@@ -58,6 +80,85 @@ func mapSeeds(seeds []int, line string, seedsCompleted []bool) {
 			seedsCompleted[idx] = true
 		}
 	}
+}
+
+func pop[T any](arr *[]T) T {
+	l := len(*arr)
+	cur := (*arr)[l-1]
+	*arr = (*arr)[:l-1]
+	return cur
+}
+
+func mapSeedsRange(seeds *[]Range, out *[]Range, block string) {
+	lines := strings.Split(block, "\n")
+
+	for len(*seeds) > 0 {
+		if len(*seeds) == 0 {
+			break
+		}
+
+		seed := pop(seeds)
+		found := false
+
+		for idx, line := range lines {
+			if idx == 0 {
+				continue
+			}
+
+			data := strings.Split(line, " ")
+			dest, _ := strconv.Atoi(data[0])
+			src, _ := strconv.Atoi(data[1])
+			count, _ := strconv.Atoi(data[2])
+
+			os := max(seed.start, src)
+			oe := min(seed.end, src+count)
+
+			if os < oe {
+				*out = append(*out, Range{
+					start: os - src + dest,
+					end:   oe - src + dest,
+				})
+				if os > seed.start {
+					(*seeds) = append((*seeds), Range{
+						start: seed.start,
+						end:   os,
+					})
+				}
+				if oe < seed.end {
+					(*seeds) = append((*seeds), Range{
+						start: oe,
+						end:   seed.end,
+					})
+				}
+
+				found = true
+				break
+			}
+		}
+
+		if !found {
+			*out = append(*out, Range{
+				start: seed.start,
+				end:   seed.end,
+			})
+		}
+	}
+}
+
+func findMinRange(arr []Range) int {
+	if len(arr) == 0 {
+		return 0
+	}
+
+	res := arr[0].start
+
+	for _, val := range arr {
+		if val.start < res {
+			res = val.start
+		}
+	}
+
+	return res
 }
 
 func findMin(arr []int) int {
@@ -107,7 +208,29 @@ func solvePuzzle01(input string) {
 	fmt.Printf("Lowest location number: %d\n", min)
 }
 
+func solvePuzzle02(input string) {
+	blocks := strings.Split(input, "\n\n")
+
+	seeds := parseSeedsRange(strings.Split(blocks[0], ":")[1])
+	newSeeds := []Range{}
+
+	for idx, block := range blocks {
+		if idx == 0 {
+			continue
+		}
+
+		mapSeedsRange(&seeds, &newSeeds, block)
+		seeds = newSeeds
+		newSeeds = []Range{}
+
+	}
+
+	min := findMinRange(seeds)
+	fmt.Printf("Lowest location number: %d\n", min)
+}
+
 func main() {
 	input := getInput()
 	solvePuzzle01(input)
+	solvePuzzle02(input)
 }
