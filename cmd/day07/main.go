@@ -236,7 +236,6 @@ func calcTotalWinnings(hands []Hand) int {
 	res := 0
 
 	for idx, hand := range hands {
-		fmt.Printf("%v\n", hand)
 		win := (idx + 1) * hand.bid
 		res += win
 	}
