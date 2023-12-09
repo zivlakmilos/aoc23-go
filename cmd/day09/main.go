@@ -53,6 +53,19 @@ func calcPrediction(data []int) int {
 	return arr[0][len(arr[0])-1]
 }
 
+func calcPredictionPrev(data []int) int {
+	arr := calcArrays(data)
+
+	for idx := len(arr) - 2; idx >= 0; idx-- {
+		prev := arr[idx][0]
+		diff := arr[idx+1][0]
+		next := prev - diff
+		arr[idx] = append([]int{next}, arr[idx]...)
+	}
+
+	return arr[0][0]
+}
+
 func solvePuzzle01() {
 	input := getInput()
 	lines := strings.Split(input, "\n")
@@ -67,6 +80,21 @@ func solvePuzzle01() {
 	fmt.Printf("Total extrapolated values: %d\n", total)
 }
 
+func solvePuzzle02() {
+	input := getInput()
+	lines := strings.Split(input, "\n")
+
+	total := 0
+	for _, line := range lines {
+		data := parseLine(line)
+		prediction := calcPredictionPrev(data)
+		total += prediction
+	}
+
+	fmt.Printf("Total extrapolated values: %d\n", total)
+}
+
 func main() {
 	solvePuzzle01()
+	solvePuzzle02()
 }
