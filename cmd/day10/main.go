@@ -111,6 +111,22 @@ func isFullyConnected(a, b *Node) bool {
 	return false
 }
 
+func cleanStartConnections(nodes [][]Node, start *Node) {
+	correctCons := [][2]int{}
+	for _, con := range start.conns {
+		node := findConnectedNode(nodes, con, start)
+		if node == nil {
+			continue
+		}
+		if !isFullyConnected(start, node) {
+			continue
+		}
+		correctCons = append(correctCons, con)
+	}
+
+	start.conns = correctCons
+}
+
 func solvePuzzle01() {
 	input := getInput()
 	nodes := parseInput(input)
@@ -154,6 +170,94 @@ func solvePuzzle01() {
 	fmt.Printf("Minimal steps to farthest distance: %d\n", maxDistance)
 }
 
+func solvePuzzle02() {
+	input := getInput()
+	nodes := parseInput(input)
+	startNode := findStartNode(nodes)
+
+	nodeQueue := []*Node{startNode}
+
+	for len(nodeQueue) > 0 {
+		currentNode := nodeQueue[0]
+		nodeQueue = nodeQueue[1:]
+
+		for _, con := range currentNode.conns {
+			node := findConnectedNode(nodes, con, currentNode)
+			if node == nil {
+				continue
+			}
+			if node.row == currentNode.row && node.col == currentNode.col {
+				continue
+			}
+			if !isFullyConnected(currentNode, node) {
+				continue
+			}
+
+			distance := currentNode.distance + 1
+			if node.distance == 0 || node.distance > distance {
+				node.distance = distance
+				nodeQueue = append(nodeQueue, node)
+			}
+		}
+	}
+
+	startNode.distance = 1
+	cleanStartConnections(nodes, startNode)
+
+	tiles := 0
+
+	for row := range nodes {
+		cross := 0
+		prev := 0
+
+		for col := range nodes[0] {
+			node := nodes[row][col]
+			if node.distance == 0 {
+				if cross%2 == 1 {
+					nodes[row][col].distance = -1
+					tiles++
+				}
+				continue
+			}
+
+			diff := 0
+			count := 0
+			for _, con := range node.conns {
+				if con[0] != 0 {
+					diff += con[0]
+					count++
+				}
+			}
+
+			switch count {
+			case 2:
+				cross++
+			case 1:
+				diff2 := prev + diff
+				if diff2 < 0 {
+					diff2 *= -1
+				}
+				switch diff2 {
+				case 2:
+					prev = 0
+				case 0:
+					if prev != 0 {
+						cross++
+					}
+					prev = 0
+				default:
+					if prev == 0 {
+						prev = diff
+					}
+				}
+			}
+		}
+	}
+
+	fmt.Printf("Encolsed tiles: %d\n", tiles)
+}
+
 func main() {
 	solvePuzzle01()
+	solvePuzzle02()
 }

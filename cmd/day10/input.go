@@ -143,12 +143,49 @@ L7|FJ7L-77|J7--L|-FFFJLFFJ-LJ7.LLL7|.FJ||L7J|7|7J|F|-F7LJ7.FJ|LF--J.F||.|-7.L-||
 LLJ7LL7-JJJLL-|JJLL-JJLF|J|7.|-7.L---J---7JJF7JF-L-|-F-7LL|JJ-LLJLL7LL-LL-L7.--JL7.LFLJ.FJ.-J.J.|JJ|J-|J.7-|JL-7.L.FJ--J-|-7-JJLF--|J..-.LLJ`
 }
 
-func getTestInput() string {
+func getTestInput01() string {
 	return `..F7.
 .FJ|.
 SJ.L7
 |F--J
 LJ...`
+}
+
+func getTestInput02() string {
+	return `...........
+.S-------7.
+.|F-----7|.
+.||.....||.
+.||.....||.
+.|L-7.F-J|.
+.|..|.|..|.
+.L--J.L--J.
+...........`
+}
+
+func getTestInput03() string {
+	return `..........
+.S------7.
+.|F----7|.
+.||OOOO||.
+.||OOOO||.
+.|L-7F-J|.
+.|II||II|.
+.L--JL--J.
+..........`
+}
+
+func getTestInput04() string {
+	return `FF7FSF7F7F7F7F7F---7
+L|LJ||||||||||||F--J
+FL-7LJLJ||||||LJL-77
+F--JF--7||LJLJ7F7FJ-
+L---JF-JLJ.||-FJLJJ7
+|F|F-JF---7F7-L7L|7|
+|FFJF7L7F-JF7|JL---7
+7-L-JL7||F7|L7F-7F7|
+L.L7LFJ|||||FJL7||LJ
+L7JLJL-JLJLJL--JLJ.L`
 }
 
 func getInput() string {
