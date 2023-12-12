@@ -85,13 +85,63 @@ func calcCombinationNumber(line string) int {
 	return res
 }
 
+func calcCombinationNumberOptimized(line string, groups []int) int {
+	if line == "" {
+		if len(groups) == 0 {
+			return 1
+		} else {
+			return 0
+		}
+	}
+
+	if len(groups) == 0 {
+		if strings.ContainsRune(line, '#') {
+			return 0
+		} else {
+			return 1
+		}
+	}
+
+	res := 0
+
+	if line[0] == '.' || line[0] == '?' {
+		res += calcCombinationNumberOptimized(line[1:], groups)
+	}
+
+	if line[0] == '#' || line[0] == '?' {
+		if groups[0] <= len(line) && !strings.ContainsRune(line[:groups[0]], '.') && (groups[0] == len(line) || line[groups[0]] != '#') {
+			if groups[0] < len(line) {
+				res += calcCombinationNumberOptimized(line[groups[0]+1:], groups[1:])
+			} else {
+				res += calcCombinationNumberOptimized("", groups[1:])
+			}
+		}
+	}
+
+	return res
+}
+
 func solvePuzzle01() {
 	input := getInput()
 	lines := strings.Split(input, "\n")
 
 	totalCombinations := 0
 	for _, line := range lines {
-		totalCombinations += calcCombinationNumber(line)
+		data, groups := parseLine(line)
+		totalCombinations += calcCombinationNumberOptimized(data, groups)
+	}
+
+	fmt.Printf("Total arrangements: %d\n", totalCombinations)
+}
+
+func solvePuzzle02() {
+	input := getInput()
+	lines := strings.Split(input, "\n")
+
+	totalCombinations := 0
+	for _, line := range lines {
+		data, groups := parseLine(line)
+		totalCombinations += calcCombinationNumberOptimized(data, groups)
 	}
 
 	fmt.Printf("Total arrangements: %d\n", totalCombinations)
@@ -99,4 +149,5 @@ func solvePuzzle01() {
 
 func main() {
 	solvePuzzle01()
+	solvePuzzle02()
 }
