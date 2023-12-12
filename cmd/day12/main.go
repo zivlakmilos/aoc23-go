@@ -85,7 +85,7 @@ func calcCombinationNumber(line string) int {
 	return res
 }
 
-func calcCombinationNumberOptimized(line string, groups []int) int {
+func calcCombinationNumberOptimized(line string, groups []int, cache map[string]int) int {
 	if line == "" {
 		if len(groups) == 0 {
 			return 1
@@ -102,23 +102,50 @@ func calcCombinationNumberOptimized(line string, groups []int) int {
 		}
 	}
 
+	groupsStr := ""
+	for _, num := range groups {
+		groupsStr += strconv.FormatInt(int64(num), 10)
+	}
+	key := line + groupsStr
+
+	if res, ok := cache[key]; ok {
+		return res
+	}
+
 	res := 0
 
 	if line[0] == '.' || line[0] == '?' {
-		res += calcCombinationNumberOptimized(line[1:], groups)
+		res += calcCombinationNumberOptimized(line[1:], groups, cache)
 	}
 
 	if line[0] == '#' || line[0] == '?' {
 		if groups[0] <= len(line) && !strings.ContainsRune(line[:groups[0]], '.') && (groups[0] == len(line) || line[groups[0]] != '#') {
 			if groups[0] < len(line) {
-				res += calcCombinationNumberOptimized(line[groups[0]+1:], groups[1:])
+				res += calcCombinationNumberOptimized(line[groups[0]+1:], groups[1:], cache)
 			} else {
-				res += calcCombinationNumberOptimized("", groups[1:])
+				res += calcCombinationNumberOptimized("", groups[1:], cache)
 			}
 		}
 	}
 
+	cache[key] = res
 	return res
+}
+
+func unfold(line string, groups []int) (string, []int) {
+	unfoldedLine := ""
+	unfoldedGroups := []int{}
+
+	for i := 0; i < 5; i++ {
+		if i > 0 {
+			unfoldedLine += "?"
+		}
+
+		unfoldedLine += line
+		unfoldedGroups = append(unfoldedGroups, groups...)
+	}
+
+	return unfoldedLine, unfoldedGroups
 }
 
 func solvePuzzle01() {
@@ -128,7 +155,7 @@ func solvePuzzle01() {
 	totalCombinations := 0
 	for _, line := range lines {
 		data, groups := parseLine(line)
-		totalCombinations += calcCombinationNumberOptimized(data, groups)
+		totalCombinations += calcCombinationNumberOptimized(data, groups, map[string]int{})
 	}
 
 	fmt.Printf("Total arrangements: %d\n", totalCombinations)
@@ -141,7 +168,8 @@ func solvePuzzle02() {
 	totalCombinations := 0
 	for _, line := range lines {
 		data, groups := parseLine(line)
-		totalCombinations += calcCombinationNumberOptimized(data, groups)
+		data, groups = unfold(data, groups)
+		totalCombinations += calcCombinationNumberOptimized(data, groups, map[string]int{})
 	}
 
 	fmt.Printf("Total arrangements: %d\n", totalCombinations)
