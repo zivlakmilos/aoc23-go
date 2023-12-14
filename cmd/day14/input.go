@@ -117,5 +117,5 @@ O.#..O.#.#
 }
 
 func getInput() string {
-	return getTestInput()
+	return getInput01()
 }
