@@ -100,6 +100,17 @@ func countVisited(grid [][]Node) int {
 	return res
 }
 
+func cleanVisited(grid [][]Node) {
+	for row := range grid {
+		for col := range grid[row] {
+			grid[row][col].visited[0] = false
+			grid[row][col].visited[1] = false
+			grid[row][col].visited[2] = false
+			grid[row][col].visited[3] = false
+		}
+	}
+}
+
 func solvePuzzle01() {
 	input := getInput()
 	grid := parseInput(input)
@@ -110,6 +121,48 @@ func solvePuzzle01() {
 	fmt.Printf("Number of energized tiles: %d\n", visited)
 }
 
+func solvePuzzle02() {
+	input := getInput()
+	grid := parseInput(input)
+
+	maxVisited := 0
+
+	for row := range grid {
+		visit(grid, 0, row, BeamDirRight)
+		visited := countVisited(grid)
+		if visited > maxVisited {
+			maxVisited = visited
+		}
+		cleanVisited(grid)
+
+		visit(grid, len(grid)-1, row, BeamDirLeft)
+		visited = countVisited(grid)
+		if visited > maxVisited {
+			maxVisited = visited
+		}
+		cleanVisited(grid)
+	}
+
+	for col := range grid[0] {
+		visit(grid, col, 0, BeamDirDown)
+		visited := countVisited(grid)
+		if visited > maxVisited {
+			maxVisited = visited
+		}
+		cleanVisited(grid)
+
+		visit(grid, col, len(grid[0])-1, BeamDirUp)
+		visited = countVisited(grid)
+		if visited > maxVisited {
+			maxVisited = visited
+		}
+		cleanVisited(grid)
+	}
+
+	fmt.Printf("Max number of energized tiles: %d\n", maxVisited)
+}
+
 func main() {
 	solvePuzzle01()
+	solvePuzzle02()
 }
