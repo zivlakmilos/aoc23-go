@@ -176,6 +176,56 @@ func findBestPath(grid [][]int) int {
 	return 0
 }
 
+func findBestPath2(grid [][]int) int {
+	visited := map[string]bool{}
+	unvisited := PriorityQueue{
+		{
+			heatLoss: 0,
+			x:        0,
+			y:        0,
+			dir:      DirectionNo,
+			step:     0,
+		},
+	}
+	heap.Init(&unvisited)
+
+	for len(unvisited) > 0 {
+		node := popNode(&unvisited)
+
+		if node.x == len(grid[0])-1 && node.y == len(grid)-1 && node.step >= 4 {
+			return node.heatLoss
+		}
+
+		key := fmt.Sprintf("%d,%d,%d,%d", node.x, node.y, node.dir, node.step)
+		if visited[key] {
+			continue
+		}
+		visited[key] = true
+
+		if node.step < 10 && node.dir != DirectionNo {
+			addNode(&unvisited, createNextNode(grid, node, node.dir))
+		}
+
+		if node.step >= 4 || node.dir == DirectionNo {
+			switch node.dir {
+			case DirectionLeft, DirectionRight:
+				addNode(&unvisited, createNextNode(grid, node, DirectionUp))
+				addNode(&unvisited, createNextNode(grid, node, DirectionDown))
+			case DirectionUp, DirectionDown:
+				addNode(&unvisited, createNextNode(grid, node, DirectionLeft))
+				addNode(&unvisited, createNextNode(grid, node, DirectionRight))
+			case DirectionNo:
+				addNode(&unvisited, createNextNode(grid, node, DirectionUp))
+				addNode(&unvisited, createNextNode(grid, node, DirectionDown))
+				addNode(&unvisited, createNextNode(grid, node, DirectionLeft))
+				addNode(&unvisited, createNextNode(grid, node, DirectionRight))
+			}
+		}
+	}
+
+	return 0
+}
+
 func solvePuzzle01() {
 	input := getInput()
 	grid := parseInput(input)
@@ -184,6 +234,15 @@ func solvePuzzle01() {
 	fmt.Printf("Least heat lost: %d\n", bestPath)
 }
 
+func solvePuzzle02() {
+	input := getInput()
+	grid := parseInput(input)
+
+	bestPath := findBestPath2(grid)
+	fmt.Printf("Least heat lost: %d\n", bestPath)
+}
+
 func main() {
 	solvePuzzle01()
+	solvePuzzle02()
 }
