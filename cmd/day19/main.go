@@ -122,6 +122,77 @@ func sumPart(part map[string]int) int {
 	return part["x"] + part["m"] + part["a"] + part["s"]
 }
 
+func createRanges() map[string][2]int {
+	return map[string][2]int{
+		"x": {1, 4000},
+		"m": {1, 4000},
+		"a": {1, 4000},
+		"s": {1, 4000},
+	}
+}
+
+func copyRanges(r map[string][2]int) map[string][2]int {
+	return map[string][2]int{
+		"x": {r["x"][0], r["x"][1]},
+		"m": {r["m"][0], r["m"][1]},
+		"a": {r["a"][0], r["a"][1]},
+		"s": {r["s"][0], r["s"][1]},
+	}
+}
+
+func countAcceptedRanges(ranges map[string][2]int, conditions map[string][]Condition, name string) int {
+	if name == "R" {
+		return 0
+	}
+
+	if name == "A" {
+		product := 1
+		for _, val := range ranges {
+			product *= val[1] - val[0] + 1
+		}
+		return product
+	}
+
+	total := 0
+
+	for _, condition := range conditions[name] {
+		t := [2]int{}
+		f := [2]int{}
+		lo := ranges[condition.parameter][0]
+		hi := ranges[condition.parameter][1]
+
+		switch condition.conditionType {
+		case ConditionTypeNo:
+			total += countAcceptedRanges(ranges, conditions, condition.destination)
+			continue
+		case ConditionTypeLT:
+			t[0] = lo
+			t[1] = condition.value - 1
+			f[0] = condition.value
+			f[1] = hi
+		case ConditionTypeGT:
+			t[0] = condition.value + 1
+			t[1] = hi
+			f[0] = lo
+			f[1] = condition.value
+		}
+
+		if t[0] <= t[1] {
+			copy := copyRanges(ranges)
+			copy[condition.parameter] = t
+			total += countAcceptedRanges(copy, conditions, condition.destination)
+		}
+		if f[0] <= f[1] {
+			ranges = copyRanges(ranges)
+			ranges[condition.parameter] = f
+		} else {
+			break
+		}
+	}
+
+	return total
+}
+
 func solvePuzzle01() {
 	input := getInput()
 	blocks := strings.Split(input, "\n\n")
@@ -140,6 +211,18 @@ func solvePuzzle01() {
 	fmt.Printf("Total accepted parts value: %d\n", total)
 }
 
+func solvePuzzle02() {
+	input := getInput()
+	blocks := strings.Split(input, "\n\n")
+
+	conditions := parseConditions(blocks[0])
+	ranges := createRanges()
+
+	total := countAcceptedRanges(ranges, conditions, "in")
+	fmt.Printf("Total accepted parts combinations: %d\n", total)
+}
+
 func main() {
 	solvePuzzle01()
+	solvePuzzle02()
 }
