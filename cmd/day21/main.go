@@ -98,13 +98,7 @@ func countAns(ans [][]bool) int {
 	return res
 }
 
-func solvePuzzle01() {
-	input := getInput()
-	grid := parseInput(input)
-
-	startPoint := findStart(grid)
-	startPoint.remainingSteps = 64
-
+func countReached(grid [][]byte, startPoint Point) int {
 	queue := Queue{startPoint}
 	seen := createGrid(len(grid), len(grid[0]), false)
 	ans := createGrid(len(grid), len(grid[0]), false)
@@ -133,9 +127,67 @@ func solvePuzzle01() {
 	}
 
 	steps := countAns(ans)
+	return steps
+}
+
+func solvePuzzle01() {
+	input := getInput()
+	grid := parseInput(input)
+
+	startPoint := findStart(grid)
+	startPoint.remainingSteps = 64
+
+	steps := countReached(grid, startPoint)
+
 	fmt.Printf("Reached plots: %d\n", steps)
+}
+
+func solvePuzzle02() {
+	input := getInput()
+	grid := parseInput(input)
+
+	steps := 26501365
+	size := len(grid)
+
+	startPoint := findStart(grid)
+	startPoint.remainingSteps = steps
+
+	gridWidth := steps/size - 1
+
+	sr := startPoint.row
+	sc := startPoint.col
+
+	odd := (gridWidth/2*2 + 1) * (gridWidth/2*2 + 1)
+	even := ((gridWidth + 1) / 2 * 2) * ((gridWidth + 1) / 2 * 2)
+
+	oddPoints := countReached(grid, Point{row: sr, col: sc, remainingSteps: size*2 + 1})
+	evenPoints := countReached(grid, Point{row: sr, col: sc, remainingSteps: size * 2})
+
+	cornerT := countReached(grid, Point{row: size - 1, col: sr, remainingSteps: size - 1})
+	cornerR := countReached(grid, Point{row: sr, col: 0, remainingSteps: size - 1})
+	cornerB := countReached(grid, Point{row: 0, col: sc, remainingSteps: size - 1})
+	cornerL := countReached(grid, Point{row: sr, col: size - 1, remainingSteps: size - 1})
+
+	smallTR := countReached(grid, Point{row: size - 1, col: 0, remainingSteps: size/2 - 1})
+	smallTL := countReached(grid, Point{row: size - 1, col: size - 1, remainingSteps: size/2 - 1})
+	smallBR := countReached(grid, Point{row: 0, col: 0, remainingSteps: size/2 - 1})
+	smallBL := countReached(grid, Point{row: 0, col: size - 1, remainingSteps: size/2 - 1})
+
+	largeTR := countReached(grid, Point{row: size - 1, col: 0, remainingSteps: size*3/2 - 1})
+	largeTL := countReached(grid, Point{row: size - 1, col: size - 1, remainingSteps: size*3/2 - 1})
+	largeBR := countReached(grid, Point{row: 0, col: 0, remainingSteps: size*3/2 - 1})
+	largeBL := countReached(grid, Point{row: 0, col: size - 1, remainingSteps: size*3/2 - 1})
+
+	totalSteps := odd*oddPoints +
+		even*evenPoints +
+		cornerT + cornerR + cornerB + cornerL +
+		(gridWidth+1)*(smallTR+smallTL+smallBR+smallBL) +
+		gridWidth*(largeTR+largeTL+largeBR+largeBL)
+
+	fmt.Printf("Reached plots: %d\n", totalSteps)
 }
 
 func main() {
 	solvePuzzle01()
+	solvePuzzle02()
 }
