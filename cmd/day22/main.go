@@ -20,6 +20,18 @@ type Brick struct {
 	coord2 [3]int
 }
 
+type Queue []int
+
+func (q *Queue) Pop() int {
+	item := (*q)[0]
+	*q = (*q)[1:]
+	return item
+}
+
+func (q *Queue) Add(val int) {
+	*q = append(*q, val)
+}
+
 func parseInput(input string) []Brick {
 	res := []Brick{}
 
@@ -112,6 +124,81 @@ func solvePuzzle01() {
 	fmt.Printf("Number of bricks that could be desintegrated: %d\n", total)
 }
 
+func solvePuzzle02() {
+	input := getInput()
+	bricks := parseInput(input)
+
+	sort.Slice(bricks, func(i, j int) bool {
+		return bricks[i].coord1[CoordAxisZ] < bricks[j].coord1[CoordAxisZ]
+	})
+
+	for idx, brick := range bricks {
+		maxZ := 1
+		for _, check := range bricks[:idx] {
+			if isOverlaps(brick, check) {
+				maxZ = max(maxZ, check.coord2[CoordAxisZ]+1)
+			}
+		}
+		bricks[idx].coord2[CoordAxisZ] -= bricks[idx].coord1[CoordAxisZ] - maxZ
+		bricks[idx].coord1[CoordAxisZ] = maxZ
+	}
+	sort.Slice(bricks, func(i, j int) bool {
+		return bricks[i].coord1[CoordAxisZ] < bricks[j].coord1[CoordAxisZ]
+	})
+
+	kSupportsV := createMap(len(bricks))
+	vSupportsK := createMap(len(bricks))
+
+	for i, upper := range bricks {
+		for j, lower := range bricks[:i] {
+			if isOverlaps(lower, upper) && upper.coord1[CoordAxisZ] == lower.coord2[CoordAxisZ]+1 {
+				kSupportsV[j] = append(kSupportsV[j], i)
+				vSupportsK[i] = append(vSupportsK[i], j)
+			}
+		}
+	}
+
+	total := 0
+	for i := range bricks {
+		queue := Queue{}
+		falling := map[int]bool{}
+		falling[i] = true
+
+		for _, j := range kSupportsV[i] {
+			if len(vSupportsK[j]) == 1 {
+				falling[j] = true
+				queue.Add(j)
+			}
+		}
+
+		for len(queue) > 0 {
+			j := queue.Pop()
+			for _, k := range kSupportsV[j] {
+				if falling[k] {
+					continue
+				}
+
+				shouldFall := true
+				for t := range vSupportsK[k] {
+					if _, ok := falling[vSupportsK[k][t]]; !ok {
+						shouldFall = false
+						break
+					}
+				}
+				if shouldFall {
+					falling[k] = true
+					queue.Add(k)
+				}
+			}
+		}
+
+		total += len(falling) - 1
+	}
+
+	fmt.Printf("Number of bricks that could be desintegrated: %d\n", total)
+}
+
 func main() {
 	solvePuzzle01()
+	solvePuzzle02()
 }
