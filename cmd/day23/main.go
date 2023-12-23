@@ -204,6 +204,71 @@ func solvePuzzle01() {
 	fmt.Printf("Longest hike: %d\n", steps)
 }
 
+func solvePuzzle02() {
+	input := getInput()
+	grid := parseInput(input)
+	nodes := parseNodes(grid)
+
+	for row := range grid {
+		for col := range grid[row] {
+			if grid[row][col] != '#' {
+				grid[row][col] = '.'
+			}
+		}
+	}
+
+	start := findEmptyNode(grid, 0)
+	finish := findEmptyNode(grid, len(grid)-1)
+	nodes = append([]Node{start, finish}, nodes...)
+
+	graph := createGraph(len(grid), len(grid[0]))
+
+	for _, node := range nodes {
+		node.steps = 0
+		stack := Stack{node}
+		seen := createMap(len(grid), len(grid[0]), false)
+		seen[node.row][node.col] = true
+
+		for len(stack) > 0 {
+			current := stack.Pop()
+
+			if current.steps > 0 {
+				found := false
+				for _, node := range nodes {
+					if node.row == current.row && node.col == current.col {
+						found = true
+						break
+					}
+				}
+				if found {
+					graph[node.row][node.col] = append(graph[node.row][node.col], current)
+					continue
+				}
+			}
+
+			for _, dir := range dirs[grid[current.row][current.col]] {
+				next := Node{
+					row:   current.row + dir.row,
+					col:   current.col + dir.col,
+					steps: current.steps + 1,
+				}
+
+				if next.row >= 0 && next.row < len(grid) &&
+					next.col >= 0 && next.col < len(grid) &&
+					grid[next.row][next.col] != '#' && !seen[next.row][next.col] {
+					stack.Push(next)
+					seen[next.row][next.col] = true
+				}
+			}
+		}
+	}
+
+	seen := createMap(len(grid), len(grid[0]), false)
+	steps := dfs(start, finish, graph, seen)
+	fmt.Printf("Longest hike: %d\n", steps)
+}
+
 func main() {
 	solvePuzzle01()
+	solvePuzzle02()
 }
